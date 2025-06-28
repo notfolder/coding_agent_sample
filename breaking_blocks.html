@@ -4,13 +4,16 @@
     <title>Breakout Game</title>
     <style>
         canvas { background: #eee; display: block; margin: 0 auto; }
+        #score { position: absolute; top: 10px; left: 10px; font-size: 24px; }
     </style>
 </head>
 <body>
 <canvas id="gameCanvas" width="480" height="320"></canvas>
+<div id="score">Score: 0</div>
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const scoreElement = document.getElementById('score');
 
 // Game variables
 let x = canvas.width / 2;
@@ -18,11 +21,30 @@ let y = canvas.height - 30;
 let dx = 2;
 let dy = -2;
 const ballRadius = 10;
+let score = 0;
 
 // Paddle variables
 let paddleHeight = 10;
 let paddleWidth = 75;
 let paddleX = (canvas.width - paddleWidth) / 2;
+
+// Block variables
+let blockRowCount = 3;
+let blockColumnCount = 5;
+let blockWidth = 75;
+let blockHeight = 20;
+let blockPadding = 10;
+let blockOffsetTop = 30;
+let blockOffsetLeft = 30;
+let blocks = [];
+
+// Create blocks
+for (let c = 0; c < blockColumnCount; c++) {
+    blocks[c] = [];
+    for (let r = 0; r < blockRowCount; r++) {
+        blocks[c][r] = { x: 0, y: 0, status: 1 };
+    }
+}
 
 // Keyboard controls
 let rightPressed = false;
@@ -63,10 +85,46 @@ function drawPaddle() {
     ctx.closePath();
 }
 
+function drawBlocks() {
+    for (let c = 0; c < blockColumnCount; c++) {
+        for (let r = 0; r < blockRowCount; r++) {
+            if (blocks[c][r].status === 1) {
+                let blockX = (c * (blockWidth + blockPadding)) + blockOffsetLeft;
+                let blockY = (r * (blockHeight + blockPadding)) + blockOffsetTop;
+                blocks[c][r].x = blockX;
+                blocks[c][r].y = blockY;
+                ctx.beginPath();
+                ctx.rect(blockX, blockY, blockWidth, blockHeight);
+                ctx.fillStyle = '#0095DD';
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+    }
+}
+
+function collisionDetection() {
+    for (let c = 0; c < blockColumnCount; c++) {
+        for (let r = 0; r < blockRowCount; r++) {
+            let b = blocks[c][r];
+            if (b.status === 1) {
+                if (x > b.x && x < b.x + blockWidth && y > b.y && y < b.y + blockHeight) {
+                    dy = -dy;
+                    b.status = 0;
+                    score += 1;
+                    scoreElement.innerText = 'Score: ' + score;
+                }
+            }
+        }
+    }
+}
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBall();
     drawPaddle();
+    drawBlocks();
+    collisionDetection();
 
     // Ball movement
     x += dx;
