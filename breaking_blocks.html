@@ -6,6 +6,7 @@
         canvas {
             border: 1px solid #000;
             background: #eee;
+            touch-action: none;
         }
     </style>
 </head>
@@ -46,7 +47,7 @@
         let ballSpeedX = 4;
         let ballSpeedY = -4;
         
-        // キー入力
+        // キーボード制御
         let rightPressed = false;
         let leftPressed = false;
         
@@ -173,7 +174,17 @@
             gameInterval = setInterval(draw, 10);
         }
         
-        // ゲームループ
+        // タッチイベント
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            
+            // パドル中央を指に合わせる
+            paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, touchX - paddleWidth / 2));
+        });
+        
+        // 描画ループ
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBall();
